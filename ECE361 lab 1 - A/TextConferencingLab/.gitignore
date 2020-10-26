@@ -1,0 +1,6 @@
+# Executables
+client
+server
+
+# Configurations
+.vscode/

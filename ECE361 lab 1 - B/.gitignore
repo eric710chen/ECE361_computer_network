@@ -1,0 +1,11 @@
+# ignore the recv path
+file_transfer/recv/*
+
+# ignore all object files
+*.o
+
+server
+client
+
+# IDE related folder
+text_conferencing/nbproject/

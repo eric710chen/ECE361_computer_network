@@ -1,0 +1,67 @@
+#!/usr/bin/expect
+set timeout 2
+set port [lindex $argv 0]
+
+set username "Chenlei"
+set userpass "chenlei"
+set ip_addr "localhost"
+set sessions [list CHENLEI_ROOM ECE_COMMON HAIL_MSE Good_Days RoundRobin]
+
+set invitee "Alex"
+
+puts "Running Testcase for Text Conferencing client"
+# Start the client
+spawn ./client
+
+expect "Welcome to Text Conferencing Pro v1\.0"
+
+send "/login $username $userpass $ip_addr $port\n"
+expect "Successfully loggged in as Chenlei"
+
+# invite invitee to session that does not exist
+send "/invite $invitee s\n"
+expect {
+    -re "Failed.*" {
+        puts "Invite to NULL session pass"
+    }
+    timeout {
+        puts "Invite to NULL session fail"
+    }
+}
+
+foreach session_name $sessions {
+    send "/createsession $session_name\n"
+    expect "Successfully created session $session_name"
+}
+
+# need the other user to be online
+set session1 [lindex $sessions 0]
+send "/invite $invitee $session1\n"
+expect -re ".*sent.*"
+
+# Switch to a unknown session
+send "/switchsession SOMETHING_DOES_NOT_EXIST";
+expect -re ".*failed";
+
+foreach session_name $sessions {
+    send "/switchsession $session_name\n"
+    # dummy expect
+    expect "something"
+    send "Hello in $session_name\n"
+    expect "\[$session_name\] $username says: Hello in $session_name"
+}
+
+send "/list\n"
+# dummy expect
+expect "something"
+
+
+foreach session_name $sessions {
+    send "/leavesession $session_name\n"
+    expect -re "\s+.+\[Server\] leaving session $session_name..."
+}
+
+# quit the conference
+send "/quit\n"
+
+interact
